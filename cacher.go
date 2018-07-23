@@ -3,8 +3,10 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"io"
 	"os"
 	"os/exec"
+	"time"
 )
 
 //StdoutCacher Represents the cacher
@@ -41,6 +43,13 @@ func (cacher *StdoutCacher) generateCacheFilename() string {
 	return cacher.command + "_" + hex.EncodeToString(md) + ".cache"
 }
 
+func (cacher *StdoutCacher) getCacheReader() (io.ReadCloser, error) {
+	fileCacheName := cacher.generateCacheFilename()
+	absPath := os.TempDir() + "/" + fileCacheName
+
+	return os.Open(absPath)
+}
+
 func (cacher *StdoutCacher) isCacheValid() bool {
 	fileCacheName := cacher.generateCacheFilename()
 	fullPath := os.TempDir() + "/" + fileCacheName
@@ -50,10 +59,28 @@ func (cacher *StdoutCacher) isCacheValid() bool {
 	if os.IsNotExist(err) {
 		return false
 	}
+
+	cacheMaxCreateTime := time.Now().Add(time.Second * time.Duration(-1*cacher.ttl))
+
+	//ModTime is used here as the cache file is never updated.
+	//Instead, the file is always recreated
+	if cacheStat.ModTime().After(cacheMaxCreateTime) {
+		return false
+	}
+
+	return true
+}
+
+func (cacher *StdoutCacher) readCache() (string, error) {
+	return "", nil
 }
 
 //RunCommand Executes the underlying command
 func (cacher *StdoutCacher) RunCommand() (string, error) {
+
+	if cacher.isCacheValid() {
+		return cacher.readCache()
+	}
 
 	cmd := exec.Command(cacher.command)
 	cmd.Args = cacher.args

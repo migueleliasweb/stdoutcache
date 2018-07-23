@@ -63,3 +63,41 @@ func TestStdoutCacherGenerateCacheFilename(t *testing.T) {
 		})
 	}
 }
+
+func TestStdoutCacherIsCacheValid(t *testing.T) {
+	type fields struct {
+		ttl         int
+		command     string
+		args        []string
+		environment []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		{
+			name: "with-cache",
+			fields: fields{
+				ttl:         99999,
+				command:     "cat",
+				args:        []string{"testfile.txt"},
+				environment: []string{},
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cacher := &StdoutCacher{
+				ttl:         tt.fields.ttl,
+				command:     tt.fields.command,
+				args:        tt.fields.args,
+				environment: tt.fields.environment,
+			}
+			if got := cacher.isCacheValid(); got != tt.want {
+				t.Errorf("StdoutCacher.isCacheValid() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
