@@ -18,7 +18,7 @@ func TestStdoutCacherGenerateCacheFilename(t *testing.T) {
 		want   string
 	}{
 		{
-			name: "foo",
+			name: "with-ttl",
 			fields: fields{
 				ttl:         2,
 				command:     "thiscommmanddoesnotexist",
@@ -28,7 +28,7 @@ func TestStdoutCacherGenerateCacheFilename(t *testing.T) {
 			want: "thiscommmanddoesnotexist_eac6bfe995dfb0973514d4e6cf8d31f2ba159ce3301cb8a454e3eeb08982557f.cache",
 		},
 		{
-			name: "foo",
+			name: "with-ttl-args",
 			fields: fields{
 				ttl:         2,
 				command:     "thiscommmanddoesnotexist",
@@ -38,7 +38,7 @@ func TestStdoutCacherGenerateCacheFilename(t *testing.T) {
 			want: "thiscommmanddoesnotexist_2636829e518b6df820cfa8f277c31718873c3276eebe8fa80f6f2453d9399366.cache",
 		},
 		{
-			name: "foo",
+			name: "with-ttl-args-env",
 			fields: fields{
 				ttl:         2,
 				command:     "thiscommmanddoesnotexist",
@@ -59,39 +59,6 @@ func TestStdoutCacherGenerateCacheFilename(t *testing.T) {
 			}
 			if got := cacher.generateCacheFilename(); got != tt.want {
 				t.Errorf("StdoutCacher.generateCacheFilename() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func TestStdoutCacherRunCommand(t *testing.T) {
-	type fields struct {
-		ttl         int
-		command     string
-		args        []string
-		environment []string
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		want    string
-		wantErr bool
-	}{}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			cacher := &StdoutCacher{
-				ttl:         tt.fields.ttl,
-				command:     tt.fields.command,
-				args:        tt.fields.args,
-				environment: tt.fields.environment,
-			}
-			got, err := cacher.RunCommand()
-			if (err != nil) != tt.wantErr {
-				t.Errorf("StdoutCacher.RunCommand() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("StdoutCacher.RunCommand() = %v, want %v", got, tt.want)
 			}
 		})
 	}

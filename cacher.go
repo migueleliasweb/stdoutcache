@@ -3,6 +3,7 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"os"
 	"os/exec"
 )
 
@@ -40,8 +41,20 @@ func (cacher *StdoutCacher) generateCacheFilename() string {
 	return cacher.command + "_" + hex.EncodeToString(md) + ".cache"
 }
 
+func (cacher *StdoutCacher) isCacheValid() bool {
+	fileCacheName := cacher.generateCacheFilename()
+	fullPath := os.TempDir() + "/" + fileCacheName
+
+	cacheStat, err := os.Stat(fullPath)
+
+	if os.IsNotExist(err) {
+		return false
+	}
+}
+
 //RunCommand Executes the underlying command
 func (cacher *StdoutCacher) RunCommand() (string, error) {
+
 	cmd := exec.Command(cacher.command)
 	cmd.Args = cacher.args
 	cmd.Env = append(cacher.environment)
